@@ -28,7 +28,8 @@ int MyFunc()
 {
 	system("chcp 1251>nul");
 	DWORD d;
-
+	DWORD d1;
+	DWORD a;
 	HANDLE OTV = CreateFile(L"OTV.txt", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	//GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL запись
 	//GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, 0 создание
@@ -48,9 +49,13 @@ int MyFunc()
 
 
 	LPWSTR str= calloc(100000, 1);
-		ReadFile(Koef, str, 100000, &d, NULL);
+		ReadFile(Koef, str, 6200, &d, NULL);
+		int ch = 0;
+		char a1;
+		WriteFile(OTV, str, 6200, &a, NULL);
+		CloseHandle(OTV);
 	char number[100000];
-	int i = 0;
+ 	int i = 0;
 	char* istr;
 	istr = strtok(str, L"\r\n");
 	if (ReadFile(Koef, str, 100000, &d, NULL) == NULL)
