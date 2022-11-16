@@ -1,27 +1,32 @@
 #define _CRT_SECURE_NO_WARNINGS
+#include <Windows.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <Windows.h>
-#include <math.h>
-BOOL WINAPI DLLMain(HINSTANCE hlnstDll, DWORD dwReason, LPVOID IpReserved)
+#include "HeaderDLL.h"
+
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
-	BOOL bAllWentWell = TRUE;
-	switch (dwReason)
+
+	switch (fdwReason)
 	{
 	case DLL_PROCESS_ATTACH:
+
 		break;
+
 	case DLL_THREAD_ATTACH:
+
 		break;
+
 	case DLL_THREAD_DETACH:
+
 		break;
+
 	case DLL_PROCESS_DETACH:
 		break;
 	}
-	if (bAllWentWell)
-		return TRUE;
-	else
-		return FALSE;
+	return TRUE;
 }
+
 extern  __declspec(dllimport) int MyFunc();
 
 int MyFunc()
@@ -30,51 +35,23 @@ int MyFunc()
 	DWORD d;
 	DWORD d1;
 	DWORD a;
-	HANDLE OTV = CreateFile(L"OTV.txt", GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE OTV = CreateFile(L"OTV.txt", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	//GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL запись
 	//GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, 0 создание
 
-	HANDLE Koef = CreateFile(L"Users.csv", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE user = CreateFile(L"Users.csv", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	/*GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL запись */
 	//GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, 0 создание
-
-	LPCSTR rez = "";
-	if (Koef == INVALID_HANDLE_VALUE)
+	if (user == INVALID_HANDLE_VALUE) //Проверка неоткрывается ли файл
 	{
-		rez = " Ошибка открытия файла";
-		WriteFile(OTV, rez, strlen(rez), &d, NULL);
-		CloseHandle(OTV);
+		MessageBox(NULL, L"Ошибка, нельзя открыть файл", L"Оповещение", MB_OK);
 		return;
 	}
-
-
-	LPWSTR str= calloc(100000, 1);
-		ReadFile(Koef, str, 6200, &d, NULL);
-		int ch = 0;
-		char a1;
-		WriteFile(OTV, str, 6200, &a, NULL);
-		CloseHandle(OTV);
-	char number[100000];
- 	int i = 0;
-	char* istr;
-	istr = strtok(str, L"\r\n");
-	if (ReadFile(Koef, str, 100000, &d, NULL) == NULL)
+	DWORD countFileSymbols;
+	LPCSTR argumentsFromFile = calloc(4000, sizeof(CHAR));
+	if (!ReadFile(user, argumentsFromFile, 4000, &countFileSymbols, NULL)) //Проверка на првильность чтения данных
 	{
-		rez = "Не удалось считать данные с файла";
-		WriteFile(OTV, rez, strlen(rez), &d, NULL);
-		CloseHandle(OTV);
+		MessageBox(NULL, L"Возникла ошибка при чтении данных!", L"Оповещение", MB_OK);
+		return 0;
 	}
-	else
-	{
-		while (istr != NULL)
-		{
-
-			number[i] = atof(istr);
-			istr = strtok(NULL, L"\r\n");
-			i++;
-
-
-		}
-	}
-	return str;
 }
