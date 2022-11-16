@@ -2,7 +2,6 @@
 #include <Windows.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "HeaderDLL.h"
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
