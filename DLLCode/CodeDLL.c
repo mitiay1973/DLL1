@@ -3,6 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//__declspec(dllimport) int myFunc(LPWSTR str);
+//__declspec(dllimport) void FileRead(struct person* pers);
+
+
+//__declspec(dllimport) void writeToFileIvanova(struct person* current, int countCurrent);
+//__declspec(dllimport) void searchSurnameIvanova(struct person* pers);
+
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
 
@@ -26,19 +33,21 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 	return TRUE;
 }
 
-extern  __declspec(dllimport) int MyFunc();
-
-int MyFunc()
+__declspec(dllimport) void MyFunc(struct MyStruct* us);
+__declspec(dllimport) void PoiskSurName(struct MyStruct* us);
+__declspec(dllimport) void writeToFile(struct MyStruct* current, int countCurrent);
+typedef int (_cdecl* forReadData)(struct MyStruct*);
+struct MyStruct
+{
+	char* Surname;
+	char* Name;
+	char* Otchestvo;
+	int Age;
+};
+void MyFunc(struct MyStruct* us)
 {
 	system("chcp 1251>nul");
-	DWORD d;
-	DWORD d1;
-	DWORD a;
-	HANDLE OTV = CreateFile(L"OTV.txt", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	//GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL запись
-	//GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, 0 создание
-
-	HANDLE user = CreateFile(L"Users.csv", GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE user = CreateFile(L"Users2.csv", GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	/*GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL запись */
 	//GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, 0 создание
 	if (user == INVALID_HANDLE_VALUE) //Проверка неоткрывается ли файл
@@ -53,4 +62,58 @@ int MyFunc()
 		MessageBox(NULL, L"Возникла ошибка при чтении данных!", L"Оповещение", MB_OK);
 		return 0;
 	}
+	char* Pars = strtok(argumentsFromFile, ";");
+	int CR;
+	for (int i = 0; i < 100; i++)
+	{
+		CR = i;
+		us[i].Surname = Pars;
+		Pars = strtok(NULL, ";\r\n");
+		us[i].Name = Pars;
+		Pars = strtok(NULL, ";\r\n");
+		us[i].Otchestvo = Pars;
+		Pars = strtok(NULL, ";\r\n");
+		us[i].Age = atoi (Pars);
+		Pars = strtok(NULL, ";\r\n");
+	}
+	CloseHandle(user);
+	PoiskSurName(us);
+}
+void PoiskSurName(struct MyStruct* us)
+{
+	struct MyStruct* Us = malloc(sizeof(struct MyStruct));
+	struct MyStruct* poiskSurName;
+	int j = 0, countOfRows = 1;
+	char* forComprasion = "Тевосова";
+	for (int i = 0; i < 100; i++)
+	{
+		if (strstr(us[i].Surname, forComprasion) != NULL)
+		{
+			Us[j] = us[i];
+			poiskSurName = realloc(Us, (j + 2) * sizeof(struct MyStruct));
+			j++;
+			Us = poiskSurName;
+		}
+	}
+	writeToFile(Us, j);
+}
+void writeToFile(struct MyStruct* current, int countCurrent)
+{
+	HANDLE OTV = CreateFile(L"OTV.csv", GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, NULL);
+	//GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL запись
+	//GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, 0 создание
+	DWORD countFileSymbols;
+	float averageAge = 0;
+	char* dataForWritting = calloc(100, sizeof(char));
+	for (int i = 0; i < countCurrent; i++)
+	{
+		sprintf(dataForWritting, "%s;%s;%s;%d\n", current[i].Surname, current[i].Name, current[i].Otchestvo, current[i].Age);
+		WriteFile(OTV, dataForWritting, strlen(dataForWritting), &countFileSymbols, NULL);
+		averageAge += current[i].Age;
+	}
+	averageAge /= countCurrent;
+	sprintf(dataForWritting, "Средний возраст: %f", averageAge);
+	WriteFile(OTV, dataForWritting, strlen(dataForWritting), &countFileSymbols, NULL);
+	free(dataForWritting);
+	CloseHandle(OTV);
 }

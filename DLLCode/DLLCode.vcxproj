@@ -130,9 +130,6 @@
   <ItemGroup>
     <ClCompile Include="CodeDLL.c" />
   </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\DLL\OTV.txt" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
