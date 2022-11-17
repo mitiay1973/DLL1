@@ -36,6 +36,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 __declspec(dllimport) void MyFunc(struct MyStruct* us);
 __declspec(dllimport) void PoiskSurName(struct MyStruct* us);
 __declspec(dllimport) void writeToFile(struct MyStruct* current, int countCurrent);
+__declspec(dllimport) void PoiskSurNameIv(struct MyStruct* us);
+__declspec(dllimport) void writeToFileIv(struct MyStruct* current, int countCurrent);
 typedef int (_cdecl* forReadData)(struct MyStruct*);
 struct MyStruct
 {
@@ -78,6 +80,7 @@ void MyFunc(struct MyStruct* us)
 	}
 	CloseHandle(user);
 	PoiskSurName(us);
+	PoiskSurNameIv(us);
 }
 void PoiskSurName(struct MyStruct* us)
 {
@@ -116,4 +119,42 @@ void writeToFile(struct MyStruct* current, int countCurrent)
 	WriteFile(OTV, dataForWritting, strlen(dataForWritting), &countFileSymbols, NULL);
 	free(dataForWritting);
 	CloseHandle(OTV);
+}
+void PoiskSurNameIv(struct MyStruct* us)
+{
+	struct MyStruct* Us = malloc(sizeof(struct MyStruct));
+	struct MyStruct* NIV;
+	int j = 0, countOfRows = 1;
+	char* forComprasion = "Иванов";
+	for (int i = 0; i < 100; i++)
+	{
+		if (strstr(us[i].Surname, forComprasion) != NULL)
+		{
+			Us[j] = us[i];
+			NIV = realloc(Us, (j + 2) * sizeof(struct MyStruct));
+			j++;
+			Us = NIV;
+		}
+	}
+	writeToFileIv(Us, j);
+}
+void writeToFileIv(struct MyStruct* current, int countCurrent)
+{
+	HANDLE OTVIv = CreateFile(L"OTVIv.csv", GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	//GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL запись
+	//GENERIC_READ | GENERIC_WRITE, FILE_SHARE_WRITE | FILE_SHARE_READ, NULL, CREATE_NEW, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, 0 создание
+	DWORD countFileSymbols;
+	float averageAge = 0;
+	char* dataForWritting = calloc(100, sizeof(char));
+	for (int i = 0; i < countCurrent; i++)
+	{
+		sprintf(dataForWritting, "%s;%s;%s;%d\n", current[i].Surname, current[i].Name, current[i].Otchestvo, current[i].Age);
+		WriteFile(OTVIv, dataForWritting, strlen(dataForWritting), &countFileSymbols, NULL);
+		averageAge += current[i].Age;
+	}
+	averageAge /= countCurrent;
+	sprintf(dataForWritting, "Средний возраст: %f", averageAge);
+	WriteFile(OTVIv, dataForWritting, strlen(dataForWritting), &countFileSymbols, NULL);
+	free(dataForWritting);
+	CloseHandle(OTVIv);
 }
